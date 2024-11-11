@@ -1,0 +1,8 @@
+*.ko
+*.o
+*.ko.cmd
+*.o.cmd
+.tmp_versions/
+Module.symvers
+kvaser_usb.mod.c
+modules.order
