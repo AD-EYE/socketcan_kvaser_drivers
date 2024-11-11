@@ -67,7 +67,7 @@
 KV_MODULE_NAME ?= kvaser_usb
 #KV_MODULE_NAME ?= kvaser_pciefd
 
-KERNEL_PATH ?= /home/vkonsta/DownloadsLocal/nvidia/nvidia_sdk/DRIVE_OS_5.0.10.3_SDK_with_DriveWorks_Linux_OS_PX2_AUTOCHAUFFEUR/DriveSDK/drive-oss-src/out-t186ref-linux/lib/modules/4.9.80-rt61-tegra
+KERNEL_PATH ?= $(HOME)/nvidia/nvidia_sdk/DRIVE_OS_5.0.10.3_SDK_with_DriveWorks_Linux_OS_PX2_AUTOCHAUFFEUR/DriveSDK/drive-oss-src/out-t186ref-linux/lib/modules/4.9.80-rt61-tegra
 KDIR ?= $(KERNEL_PATH)/build
 INSTALL_MOD_DIR ?= updates
 
