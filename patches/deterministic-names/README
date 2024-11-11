@@ -1,0 +1,36 @@
+With a patched driver and udev rules, it's possible to get deterministic
+interface names.
+
+
+Unplug any Kvaser USB devices.
+
+To unload the current driver, patch, build and install the Kvaser SocketCAN drivers:
+$ sudo rmmod kvaser_usb
+$ cd socketcan_kvaser_drivers
+$ patch -p1 < patches/deterministic-names/socketcan_ean_serial_channel_attr_for_udev.patch 
+$ make
+$ sudo make install
+
+
+Now the EAN, serial number and channel number are exposed in sysfs for the device:
+$ cat /sys/class/net/can0/kv_ean
+$ cat /sys/class/net/can0/kv_serial
+$ cat /sys/class/net/can0/kv_channel
+
+We can use this for creating a udev rule, that will rename the interface.
+Note: The interface name must be unique and the maximum length is 15 characters.
+$ sudo cp patches/deterministic-names/udev/etc/udev/rules.d/10-kvaser_usb-can-ifnames.rules /etc/udev/rules.d/10-kvaser_usb-can-ifnames.rules
+Update the udev rule to match your devices.
+
+
+
+Usually udev will reload the rules automatically when changed,
+you may also execute the following to make sure that the rules are reloaded:
+$ sudo udevadm control --reload-rules
+
+
+If everything is setup correctly, the interface will be renamed, when you connect a new Kvaser USB device.
+
+
+For more details on udev rules:
+https://www.freedesktop.org/software/systemd/man/udev.html

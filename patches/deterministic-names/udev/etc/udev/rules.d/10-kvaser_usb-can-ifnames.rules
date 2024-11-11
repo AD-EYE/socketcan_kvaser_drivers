@@ -1,0 +1,42 @@
+SUBSYSTEM!="net", GOTO="net_setup_link_end"
+ACTION!="add", ATTRS{idVendor}!="0bfd", GOTO="net_setup_link_end"
+
+IMPORT{builtin}="net_setup_link"
+ENV{INTERFACE}!="can*", GOTO="net_setup_link_end"
+
+ENV{KV_EAN}="$attr{kv_ean}"
+ENV{KV_SERIAL}="$attr{kv_serial}"
+ENV{KV_CHANNEL}="$attr{kv_channel}"
+
+# Note: The maximum length of interface name, NAME, is 15 characters
+#       Make sure the names are unique
+
+# Leaf Light v2, with serial connected to bus 4
+ENV{KV_EAN}=="7330130006850", ENV{KV_SERIAL}=="33333", NAME=="", NAME="can$env{KV_SERIAL}-b4"
+
+# USBCan Light 2xHS, with serial 12345
+# Channel 0 connected to bus 6
+ENV{KV_EAN}=="7330130007147", ENV{KV_SERIAL}=="12345", ENV{KV_CHANNEL}=="0", NAME=="", NAME="can-$env{KV_SERIAL}-b6"
+# Channel 1 connected to bus 2
+ENV{KV_EAN}=="7330130007147", ENV{KV_SERIAL}=="12345", ENV{KV_CHANNEL}=="1", NAME=="", NAME="can-$env{KV_SERIAL}-b2"
+
+# USBCan Light 2xHS, with serial 23456
+# Channel 0 connected to bus 2
+ENV{KV_EAN}=="7330130007147", ENV{KV_SERIAL}=="23456", ENV{KV_CHANNEL}=="0", NAME=="", NAME="can-$env{KV_SERIAL}-b2"
+# Channel 1 connected to bus 6
+ENV{KV_EAN}=="7330130007147", ENV{KV_SERIAL}=="23456", ENV{KV_CHANNEL}=="1", NAME=="", NAME="can-$env{KV_SERIAL}-b6"
+
+# U100, with serial 222222 connected to CAN FD bus 3
+ENV{KV_EAN}=="7330130011748", ENV{KV_SERIAL}=="222222", NAME=="", NAME="canf-$env{KV_SERIAL}-b3"
+
+# Kvaser Hybrid 2xCAN/LIN, with serial 56789 connected to CAN FD bus 3
+# Channel 0 connected to CAN FD bus 2
+ENV{KV_EAN}=="7330130009653", ENV{KV_SERIAL}=="56789", ENV{KV_CHANNEL}=="0", NAME=="", NAME="canf-$env{KV_SERIAL}-b3"
+# Channel 1 not used
+ENV{KV_EAN}=="7330130009653", ENV{KV_SERIAL}=="56789", ENV{KV_CHANNEL}=="1", NAME=="", NAME="can-$env{KV_SERIAL}-none"
+
+# Default, if nothing above matched
+# If you prefer the standard naming scheme, canxx, remove the line below.
+NAME=="", NAME="can-$env{KV_SERIAL}-$env{KV_CHANNEL}"
+
+LABEL="net_setup_link_end"

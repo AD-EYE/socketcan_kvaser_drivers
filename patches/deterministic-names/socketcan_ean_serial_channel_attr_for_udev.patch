@@ -1,0 +1,111 @@
+diff --git a/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb.h b/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb.h
+index a1911e2..1d92c3a 100644
+--- a/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb.h
++++ b/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb.h
+@@ -100,6 +100,8 @@ struct kvaser_usb {
+ 	 * also used as a sentinel for marking free tx contexts.
+ 	 */
+ 	u32 fw_version;
++	u32 serial;
++	u64 ean;
+ 	unsigned int nchannels;
+ 	unsigned int max_tx_urbs;
+ 	struct kvaser_usb_dev_card_data card_data;
+diff --git a/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb_core.c b/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb_core.c
+index 33af541..ed15a2e 100644
+--- a/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb_core.c
++++ b/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb_core.c
+@@ -784,6 +784,47 @@ freeurb:
+ 	return ret;
+ }
+ 
++static ssize_t kv_ean_show(struct device *dev,
++			   struct device_attribute *attr, char *buf)
++{
++	struct kvaser_usb_net_priv *priv = netdev_priv(to_net_dev(dev));
++	struct kvaser_usb *kvaser_dev = priv->dev;
++
++	return sprintf(buf, "%llx\n", kvaser_dev->ean);
++}
++
++static ssize_t kv_serial_show(struct device *dev,
++			      struct device_attribute *attr, char *buf)
++{
++	struct kvaser_usb_net_priv *priv = netdev_priv(to_net_dev(dev));
++	struct kvaser_usb *kvaser_dev = priv->dev;
++
++	return sprintf(buf, "%u\n", kvaser_dev->serial);
++}
++
++static ssize_t kv_channel_show(struct device *dev,
++			       struct device_attribute *attr, char *buf)
++{
++	struct kvaser_usb_net_priv *priv = netdev_priv(to_net_dev(dev));
++
++	return sprintf(buf, "%u\n", priv->channel);
++}
++
++static DEVICE_ATTR_RO(kv_ean);
++static DEVICE_ATTR_RO(kv_serial);
++static DEVICE_ATTR_RO(kv_channel);
++
++static struct attribute *kvaser_usb_dev_attrs[] = {
++	&dev_attr_kv_ean.attr,
++	&dev_attr_kv_serial.attr,
++	&dev_attr_kv_channel.attr,
++	NULL,
++};
++
++static const struct attribute_group kvaser_usb_dev_group = {
++	.attrs = kvaser_usb_dev_attrs,
++};
++
+ static const struct net_device_ops kvaser_usb_netdev_ops = {
+ 	.ndo_open = kvaser_usb_open,
+ 	.ndo_stop = kvaser_usb_close,
+@@ -912,6 +953,7 @@ static int kvaser_usb_init_one(struct kvaser_usb *dev, int channel)
+ 
+ 	netdev->flags |= IFF_ECHO;
+ 
++	netdev->sysfs_groups[0] = &kvaser_usb_dev_group;
+ 	netdev->netdev_ops = &kvaser_usb_netdev_ops;
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
+ 	if (driver_info->quirks & KVASER_USB_QUIRK_HAS_HARDWARE_TIMESTAMP) {
+diff --git a/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb_hydra.c b/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb_hydra.c
+index 1959520..5f1dd1a 100644
+--- a/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb_hydra.c
++++ b/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb_hydra.c
+@@ -1944,6 +1944,9 @@ static int kvaser_usb_hydra_get_card_info(struct kvaser_usb *dev)
+ 	if (dev->nchannels > KVASER_USB_MAX_NET_DEVICES)
+ 		return -EINVAL;
+ 
++	dev->serial = le32_to_cpu(cmd.card_info.serial_number);
++	dev->ean = (u64)le32_to_cpu(cmd.card_info.ean[1]) << 32 | le32_to_cpu(cmd.card_info.ean[0]);
++
+ 	return 0;
+ }
+ 
+diff --git a/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb_leaf.c b/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb_leaf.c
+index 8feef9a..2622a86 100644
+--- a/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb_leaf.c
++++ b/kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb_leaf.c
+@@ -148,7 +148,7 @@ struct kvaser_cmd_cardinfo {
+ 	__le32 padding0;
+ 	__le32 clock_resolution;
+ 	__le32 mfgdate;
+-	u8 ean[8];
++	__le32 ean[2];
+ 	u8 hw_revision;
+ 	union {
+ 		struct {
+@@ -781,6 +781,10 @@ static int kvaser_usb_leaf_get_card_info(struct kvaser_usb *dev)
+ 	     dev->nchannels > MAX_USBCAN_NET_DEVICES))
+ 		return -EINVAL;
+ 
++	dev->serial = le32_to_cpu(cmd.u.cardinfo.serial_number);
++	dev->ean = (u64)(le32_to_cpu(cmd.u.cardinfo.ean[1])) << 32 |
++		   le32_to_cpu(cmd.u.cardinfo.ean[0]);
++
+ 	return 0;
+ }
+ 
