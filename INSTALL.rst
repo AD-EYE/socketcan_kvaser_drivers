@@ -4,6 +4,11 @@
 
     make ARCH=arm64 CC=$HOME/nvidia/nvidia_sdk/DRIVE_OS_5.0.10.3_SDK_with_DriveWorks_Linux_OS_PX2_AUTOCHAUFFEUR/DriveSDK/toolchains/tegra-4.9-nv/usr/libexec/aarch64-gnu-linux/gcc/aarch64-gnu-linux/4.9.4/gcc LD=$HOME/nvidia/nvidia_sdk/DRIVE_OS_5.0.10.3_SDK_with_DriveWorks_Linux_OS_PX2_AUTOCHAUFFEUR/DriveSDK/toolchains/tegra-4.9-nv/usr/libexec/aarch64-gnu-linux/gcc/aarch64-gnu-linux/4.9.4/ld
 
+   If you experience the error ``unrecognized option '-Wl,--copy-dt-needed-entries'``, check the LDFLAGS environmental variable with ``echo $LDFLAGS``, as it may contain these linker flags. If you have these flags in the environmental variable, add the ``LDFLAGS=""`` option to the make command::
+
+    make ARCH=arm64 CC=$HOME/nvidia/nvidia_sdk/DRIVE_OS_5.0.10.3_SDK_with_DriveWorks_Linux_OS_PX2_AUTOCHAUFFEUR/DriveSDK/toolchains/tegra-4.9-nv/usr/libexec/aarch64-gnu-linux/gcc/aarch64-gnu-linux/4.9.4/gcc LD=$HOME/nvidia/nvidia_sdk/DRIVE_OS_5.0.10.3_SDK_with_DriveWorks_Linux_OS_PX2_AUTOCHAUFFEUR/DriveSDK/toolchains/tegra-4.9-nv/usr/libexec/aarch64-gnu-linux/gcc/aarch64-gnu-linux/4.9.4/ld LDFLAGS=""
+
+
 4. Copy *kernel/drivers/net/can/usb/kvaser_usb/kvaser_usb.ko* to PX2 */lib/modules/4.9.80-rt61-tegra/kernel/drivers/net/can/usb/kvaser_usb.ko*
 
 5. Add (if not already) to PX2 file */etc/modules* line **kvaser_usb**
